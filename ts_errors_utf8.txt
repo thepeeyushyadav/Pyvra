@@ -1,0 +1,28 @@
+﻿.next/types/app/(main)/agency/[agencyId]/layout.ts(34,31): error TS2344: Type '{ params: { agencyId: string; }; } & { children?: ReactNode; }' does not satisfy the constraint 'LayoutProps'.
+  Types of property 'params' are incompatible.
+    Type '{ agencyId: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/app/(main)/agency/[agencyId]/settings/page.ts(34,29): error TS2344: Type 'Props' does not satisfy the constraint 'PageProps'.
+  Types of property 'params' are incompatible.
+    Type '{ agencyId: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/validator.ts(202,31): error TS2344: Type 'typeof import("P:/webprodigies-plura/src/app/(main)/agency/[agencyId]/layout")' does not satisfy the constraint 'LayoutConfig<"/agency/[agencyId]">'.
+  Types of property 'default' are incompatible.
+    Type '({ children, params }: Props) => Promise<JSX.Element>' is not assignable to type 'ComponentType<LayoutProps<"/agency/[agencyId]">> | ((props: LayoutProps<"/agency/[agencyId]">) => void | ReactNode | Promise<...> | Promise<...>)'.
+      Type '({ children, params }: Props) => Promise<JSX.Element>' is not assignable to type 'FunctionComponent<LayoutProps<"/agency/[agencyId]">>'.
+        Types of parameters '__0' and 'props' are incompatible.
+          Type 'LayoutProps<"/agency/[agencyId]">' is not assignable to type 'Props'.
+            Type 'LayoutProps<"/agency/[agencyId]">' is not assignable to type '{ params: { agencyId: string; }; }'.
+              Types of property 'params' are incompatible.
+                Property 'agencyId' is missing in type 'Promise<{ agencyId: string; }>' but required in type '{ agencyId: string; }'.
+src/components/forms/agency-details.tsx(382,49): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/components/forms/contact-user-form.tsx(12,10): error TS2459: Module '"../ui/use-toast"' declares 'toast' locally, but it is not exported.
+src/components/forms/funnel-form.tsx(27,10): error TS2459: Module '"../ui/use-toast"' declares 'toast' locally, but it is not exported.
+src/components/forms/lane-form.tsx(34,10): error TS2459: Module '"../ui/use-toast"' declares 'toast' locally, but it is not exported.
+src/components/forms/subscription-form/index.tsx(9,8): error TS2307: Cannot find module '@stripe/react-stripe-js' or its corresponding type declarations.
+src/components/forms/subscription-form/subscription-form-wrapper.tsx(4,10): error TS2459: Module '"@/components/ui/use-toast"' declares 'toast' locally, but it is not exported.
+src/components/forms/subscription-form/subscription-form-wrapper.tsx(5,30): error TS2307: Cannot find module '@/lib/constant' or its corresponding type declarations.
+src/components/forms/subscription-form/subscription-form-wrapper.tsx(10,26): error TS2307: Cannot find module '@stripe/react-stripe-js' or its corresponding type declarations.
+src/components/forms/subscription-form/subscription-form-wrapper.tsx(102,40): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/components/forms/ticket-form.tsx(48,10): error TS2459: Module '"../ui/use-toast"' declares 'toast' locally, but it is not exported.
+src/components/forms/ticket-form.tsx(49,24): error TS2307: Cannot find module '../global/tag-creator' or its corresponding type declarations.
+src/providers/modal-provider.tsx(49,17): error TS2872: This kind of expression is always truthy.

@@ -1,0 +1,15 @@
+﻿.next/types/app/(main)/agency/[agencyId]/layout.ts(34,31): error TS2344: Type 'Props' does not satisfy the constraint 'LayoutProps'.
+  Types of property 'params' are incompatible.
+    Type '{ agencyId: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+.next/types/validator.ts(157,31): error TS2344: Type 'typeof import("P:/webprodigies-plura/src/app/(main)/agency/[agencyId]/layout")' does not satisfy the constraint 'LayoutConfig<"/agency/[agencyId]">'.
+  Types of property 'default' are incompatible.
+    Type '({ children, params }: Props) => Promise<React.JSX.Element>' is not assignable to type 'ComponentType<LayoutProps<"/agency/[agencyId]">> | ((props: LayoutProps<"/agency/[agencyId]">) => void | ReactNode | Promise<...> | Promise<...>)'.
+      Type '({ children, params }: Props) => Promise<React.JSX.Element>' is not assignable to type 'FunctionComponent<LayoutProps<"/agency/[agencyId]">>'.
+        Types of parameters '__0' and 'props' are incompatible.
+          Type 'LayoutProps<"/agency/[agencyId]">' is not assignable to type 'Props'.
+            Types of property 'params' are incompatible.
+              Property 'agencyId' is missing in type 'Promise<{ agencyId: string; }>' but required in type '{ agencyId: string; }'.
+src/components/forms/agency-details.tsx(139,45): error TS2345: Argument of type '{ id: string; address: string; agencyLogo: string; city: string; companyPhone: string; country: string; name: string; state: string; whiteLabel: boolean; zipCode: string; createdAt: Date; updatedAt: Date; companyEmail: string; connectAccountId: string; goal: number; }' is not assignable to parameter of type '{ id: string; name: string; address: string; agencyLogo: string; createdAt: Date; updatedAt: Date; connectAccountId: string | null; customerId: string; companyEmail: string; companyPhone: string; ... 5 more ...; goal: number; }'.
+  Property 'customerId' is missing in type '{ id: string; address: string; agencyLogo: string; city: string; companyPhone: string; country: string; name: string; state: string; whiteLabel: boolean; zipCode: string; createdAt: Date; updatedAt: Date; companyEmail: string; connectAccountId: string; goal: number; }' but required in type '{ id: string; name: string; address: string; agencyLogo: string; createdAt: Date; updatedAt: Date; connectAccountId: string | null; customerId: string; companyEmail: string; companyPhone: string; ... 5 more ...; goal: number; }'.
+src/components/ui/combobox.tsx(4,47): error TS2307: Cannot find module '@base-ui/react' or its corresponding type declarations.
+src/lib/stripe/stripe-actions.ts(27,57): error TS2339: Property 'current_period_end' does not exist on type 'Subscription'.
