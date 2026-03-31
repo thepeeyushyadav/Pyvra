@@ -70,7 +70,7 @@ const PricingCard = ({
     <Card className="flex flex-col justify-between lg:w-1/2">
       <div>
         <CardHeader className="flex flex-col md:flex-row justify-between">
-          <div>
+          <div className="flex flex-col gap-2">
             <CardTitle>{title}</CardTitle>
             <CardDescription>{description}</CardDescription>
           </div>

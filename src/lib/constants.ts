@@ -40,7 +40,7 @@ export const pricingCards = [
     {
         title: "Unlimited Saas",
         description: "The ultimate agency kit",
-        price: "$199",
+        price: "₹199",
         duration: "month",
         highlight: "Key features",
         features: ["Rebilling", "24/7 Support team"],
@@ -49,7 +49,7 @@ export const pricingCards = [
     {
         title: "Basic",
         description: "For serious agency owners",
-        price: "$49",
+        price: "₹49",
         duration: "month",
         highlight: "Everything in Starter, plus",
         features: ["Unlimited Sub accounts", "Unlimited Team members"],

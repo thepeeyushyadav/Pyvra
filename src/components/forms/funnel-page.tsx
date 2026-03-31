@@ -67,7 +67,10 @@ const CreateFunnelPage: React.FC<CreateFunnelPageProps> = ({
   }, [defaultData]);
 
   const onSubmit = async (values: z.infer<typeof FunnelPageSchema>) => {
-    if (order !== 0 && !values.pathName)
+    const formData = form.getValues();
+    const finalValues = values.name ? values : formData;
+
+    if (order !== 0 && !finalValues.pathName)
       return form.setError("pathName", {
         message:
           "Pages other than the first page in the funnel require a path name example 'secondstep'.",
@@ -77,10 +80,11 @@ const CreateFunnelPage: React.FC<CreateFunnelPageProps> = ({
       const response = await upsertFunnelPage(
         subaccountId,
         {
-          ...values,
+          ...finalValues,
+          name: finalValues.name,
           id: defaultData?.id || v4(),
           order: defaultData?.order || order,
-          pathName: values.pathName || "",
+          pathName: finalValues.pathName || "",
         },
         funnelId,
       );
@@ -122,7 +126,6 @@ const CreateFunnelPage: React.FC<CreateFunnelPageProps> = ({
             className="flex flex-col gap-6"
           >
             <FormField
-              disabled={form.formState.isSubmitting}
               control={form.control}
               name="name"
               render={({ field }) => (
@@ -136,7 +139,7 @@ const CreateFunnelPage: React.FC<CreateFunnelPageProps> = ({
               )}
             />
             <FormField
-              disabled={form.formState.isSubmitting || order === 0}
+              disabled={order === 0}
               control={form.control}
               name="pathName"
               render={({ field }) => (
@@ -146,7 +149,11 @@ const CreateFunnelPage: React.FC<CreateFunnelPageProps> = ({
                     <Input
                       placeholder="Path for the page"
                       {...field}
-                      value={field.value?.toLowerCase()}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        form.clearErrors("pathName");
+                      }}
+                      value={field.value?.toLowerCase() || ""}
                     />
                   </FormControl>
                   <FormMessage />

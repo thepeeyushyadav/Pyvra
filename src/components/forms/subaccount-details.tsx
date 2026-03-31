@@ -31,15 +31,15 @@ import { saveActivityLogsNotification, upsertSubAccount } from "@/lib/queries";
 import { v4 } from "uuid";
 
 const formSchema = z.object({
-  name: z.string(),
-  companyEmail: z.string(),
-  companyPhone: z.string(),
-  address: z.string(),
-  city: z.string(),
-  subAccountLogo: z.string(),
-  zipCode: z.string(),
-  state: z.string(),
-  country: z.string(),
+  name: z.string().min(1, { message: "Account name is required" }),
+  companyEmail: z.string().min(1, { message: "Account email is required" }),
+  companyPhone: z.string().min(1, { message: "Phone number is required" }),
+  address: z.string().min(1, { message: "Address is required" }),
+  city: z.string().min(1, { message: "City is required" }),
+  subAccountLogo: z.string().min(1, { message: "Account logo is required" }),
+  zipCode: z.string().min(1, { message: "Zipcode is required" }),
+  state: z.string().min(1, { message: "State is required" }),
+  country: z.string().min(1, { message: "Country is required" }),
 });
 
 //CHALLENGE Give access for Subaccount Guest they should see a different view maybe a form that allows them to create tickets
@@ -81,6 +81,8 @@ const SubAccountDetails: React.FC<SubAccountDetailsProps> = ({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      console.log("Submitting sub account:", values.name, values.companyEmail);
+      
       const response = await upsertSubAccount({
         id: details?.id ? details.id : v4(),
         address: values.address,
@@ -113,10 +115,14 @@ const SubAccountDetails: React.FC<SubAccountDetailsProps> = ({
       setClose();
       router.refresh();
     } catch (error: any) {
+      console.error("Sub account form error:", error);
+      const message = error?.message || String(error);
       toast({
         variant: "destructive",
-        title: "Oppse!",
-        description: `Could not save sub account details. Error: ${error?.message || error}`,
+        title: "Error",
+        description: message.includes("An error occurred")
+          ? "Could not save sub account. Please check all fields and try again."
+          : `Could not save sub account details. ${message}`,
       });
     }
   }
@@ -137,7 +143,7 @@ const SubAccountDetails: React.FC<SubAccountDetailsProps> = ({
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-4">
             <FormField
               disabled={isLoading}
               control={form.control}
@@ -146,11 +152,17 @@ const SubAccountDetails: React.FC<SubAccountDetailsProps> = ({
                 <FormItem>
                   <FormLabel>Account Logo</FormLabel>
                   <FormControl>
-                    <FileUpload
-                      apiEndpoint="subaccountLogo"
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
+                    <div
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") e.preventDefault();
+                      }}
+                    >
+                      <FileUpload
+                        apiEndpoint="subaccountLogo"
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -279,10 +291,19 @@ const SubAccountDetails: React.FC<SubAccountDetailsProps> = ({
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={isLoading}>
+            <Button
+              type="button"
+              disabled={isLoading}
+              onClick={async () => {
+                const isValid = await form.trigger();
+                if (!isValid) return;
+                const values = form.getValues();
+                await onSubmit(values);
+              }}
+            >
               {isLoading ? <Loading /> : "Save Account Information"}
             </Button>
-          </form>
+          </div>
         </Form>
       </CardContent>
     </Card>

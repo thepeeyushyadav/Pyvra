@@ -53,26 +53,33 @@ const Page = async ({ params }: Props) => {
     },
   }));
 
-  // Payment history from DB (orders stored after verify-payment)
+  // Payment history — always show at least the free tier entry
   const subscriptionHistory = agencySubscription?.Subscription
     ? [
         {
           id: agencySubscription.Subscription.subscritiptionId ?? "—",
-          description: agencySubscription.Subscription.plan ?? "Subscription",
+          description:
+            pricingCards.find(
+              (p) => p.priceId === agencySubscription.Subscription?.priceId
+            )?.title ?? "Subscription",
           date: agencySubscription.Subscription.currentPeriodEndDate
             ? `Renews ${new Date(agencySubscription.Subscription.currentPeriodEndDate).toLocaleDateString()}`
             : "—",
-          status: agencySubscription.Subscription.active ? "Paid" : "Inactive",
-          amount: agencySubscription.Subscription.priceId
-            ? (
-                pricingCards.find(
-                  (p) => p.priceId === agencySubscription.Subscription?.priceId
-                )?.price ?? "$0"
-              )
-            : "$0",
+          status: agencySubscription.Subscription.active ? "Active" : "Inactive",
+          amount: pricingCards.find(
+            (p) => p.priceId === agencySubscription.Subscription?.priceId
+          )?.price ?? "₹0",
         },
       ]
-    : [];
+    : [
+        {
+          id: "free-tier",
+          description: "Starter Plan",
+          date: "Ongoing",
+          status: "Active",
+          amount: "Free",
+        },
+      ];
 
   return (
     <>
@@ -85,8 +92,8 @@ const Page = async ({ params }: Props) => {
           customerId={agencySubscription?.customerId || ""}
           amt={
             agencySubscription?.Subscription?.active === true
-              ? currentPlanDetails?.price || "$0"
-              : "$0"
+              ? currentPlanDetails?.price || "₹0"
+              : "₹0"
           }
           buttonCta={
             agencySubscription?.Subscription?.active === true
@@ -124,8 +131,8 @@ const Page = async ({ params }: Props) => {
             key={addOn.id}
             amt={
               addOn.default_price?.unit_amount
-                ? `$${addOn.default_price.unit_amount / 100}`
-                : "$0"
+                ? `₹${addOn.default_price.unit_amount / 100}`
+                : "₹199"
             }
             buttonCta="Subscribe"
             description="Dedicated support line & teams channel for support"
@@ -160,10 +167,13 @@ const Page = async ({ params }: Props) => {
                 <p
                   className={clsx("", {
                     "text-emerald-500":
+                      charge.status.toLowerCase() === "active" ||
                       charge.status.toLowerCase() === "paid",
                     "text-orange-600":
                       charge.status.toLowerCase() === "pending",
-                    "text-red-600": charge.status.toLowerCase() === "failed",
+                    "text-red-600":
+                      charge.status.toLowerCase() === "failed" ||
+                      charge.status.toLowerCase() === "inactive",
                   })}
                 >
                   {charge.status.toUpperCase()}

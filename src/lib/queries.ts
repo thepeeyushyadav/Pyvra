@@ -142,18 +142,24 @@ export const saveActivityLogsNotification = async ({ agencyId, description, subA
 };
 
 export const updateUser = async (user: Partial<User>) => {
+    // Separate identity/readonly fields from updatable fields
+    const { id, email, createdAt, updatedAt, ...updateData } = user as any;
+
     const response = await db.user.update({
         where: {
             email: user.email,
         },
         data: {
-            ...user,
+            ...updateData,
         },
     });
 
     const client = await clerkClient();
     
     await client.users.updateUserMetadata(response.id, {
+        privateMetadata: {
+            role: user.role || "SUBACCOUNT_USER",
+        },
         publicMetadata: {
             role: user.role || "SUBACCOUNT_USER",
         },
@@ -175,14 +181,25 @@ export const updateUser = async (user: Partial<User>) => {
 
 export const changeUserPermission = async (permissionId: string, userEmail: string, subAccountId: string, permission: boolean) => {
     try {
+        // First check if a permission already exists for this email+subAccount combo
+        const existing = await db.permissions.findFirst({
+            where: {
+                email: userEmail,
+                subAccountId: subAccountId,
+            },
+        });
+
+        const actualId = existing?.id || permissionId;
+
         const response = await db.permissions.upsert({
             where: {
-                id: permissionId,
+                id: actualId,
             },
             update: {
                 access: permission,
             },
             create: {
+                id: permissionId,
                 access: permission,
                 email: userEmail,
                 subAccountId: subAccountId,
@@ -191,7 +208,7 @@ export const changeUserPermission = async (permissionId: string, userEmail: stri
         revalidatePath("/", "layout");
         return response;
     } catch (err) {
-        console.log(err);
+        console.log("changeUserPermission error:", err);
     }
 };
 
@@ -267,6 +284,7 @@ export const updateAgencyDetails = async (agencyId: string, agencyDetails: Parti
         where: { id: agencyId },
         data: { ...agencyDetails },
     });
+    revalidatePath("/", "layout");
     return response;
 };
 
@@ -286,6 +304,7 @@ export const deleteAgency = async (agencyId: string) => {
             id: agencyId,
         },
     });
+    revalidatePath("/", "layout");
     return response;
 };
 
@@ -416,8 +435,25 @@ export const getNotificationAndUser = async (agencyId: string) => {
     }
 };
 
-export const upsertSubAccount = async (subAccount: Partial<SubAccount> & { id: string, name: string, agencyId: string, companyEmail: string, companyPhone: string, address: string, city: string, zipCode: string, state: string, country: string, subAccountLogo: string }) => {
-    if (!subAccount.companyEmail) return null;
+export const upsertSubAccount = async (subAccount: {
+    id: string;
+    name: string;
+    agencyId: string;
+    companyEmail: string;
+    companyPhone: string;
+    address: string;
+    city: string;
+    zipCode: string;
+    state: string;
+    country: string;
+    subAccountLogo: string;
+    connectAccountId?: string;
+    goal?: number;
+}) => {
+    console.log("▶ upsertSubAccount received:", JSON.stringify(subAccount, null, 2));
+    if (!subAccount.companyEmail) {
+        throw new Error("Company email is required to create a sub account.");
+    }
 
     let agencyOwner = await db.user.findFirst({
         where: {
@@ -429,7 +465,7 @@ export const upsertSubAccount = async (subAccount: Partial<SubAccount> & { id: s
     });
 
     if (!agencyOwner) {
-        console.log("No AGENCY_OWNER found. Searching for AGENCY_ADMIN or falling back to current user.");
+        console.log("No AGENCY_OWNER found. Searching for AGENCY_ADMIN.");
         agencyOwner = await db.user.findFirst({
             where: {
                 agencyId: subAccount.agencyId,
@@ -439,9 +475,9 @@ export const upsertSubAccount = async (subAccount: Partial<SubAccount> & { id: s
     }
 
     if (!agencyOwner) {
-         console.log("Still no owner/admin found. Cannot assign explicit permissions, will use current user's email.");
+         console.log("Still no owner/admin found. Will use current user's email.");
     }
-    const permissionId = v4();
+
     const authUser = await currentUser();
     const userEmail = authUser?.emailAddresses[0].emailAddress;
     const permissionsToCreate: any[] = [];
@@ -450,7 +486,7 @@ export const upsertSubAccount = async (subAccount: Partial<SubAccount> & { id: s
         permissionsToCreate.push({
             access: true,
             email: agencyOwner.email,
-            id: permissionId,
+            id: v4(),
         });
     }
 
@@ -462,12 +498,29 @@ export const upsertSubAccount = async (subAccount: Partial<SubAccount> & { id: s
         });
     }
 
+    // Extract only the scalar fields Prisma accepts for update
+    const scalarData = {
+        name: subAccount.name,
+        companyEmail: subAccount.companyEmail,
+        companyPhone: subAccount.companyPhone,
+        address: subAccount.address,
+        city: subAccount.city,
+        zipCode: subAccount.zipCode,
+        state: subAccount.state,
+        country: subAccount.country,
+        subAccountLogo: subAccount.subAccountLogo,
+        connectAccountId: subAccount.connectAccountId ?? "",
+        goal: subAccount.goal ?? 5000,
+    };
+
     try {
         const response = await db.subAccount.upsert({
             where: { id: subAccount.id },
-            update: subAccount,
+            update: scalarData,
             create: {
-                ...subAccount,
+                id: subAccount.id,
+                agencyId: subAccount.agencyId,
+                ...scalarData,
                 Permissions: {
                     create: permissionsToCreate,
                 },
@@ -521,14 +574,15 @@ export const upsertSubAccount = async (subAccount: Partial<SubAccount> & { id: s
             },
         });
         
+        console.log("✅ Sub account saved:", response.id, response.name);
         return {
             id: response.id,
             name: response.name,
             agencyId: response.agencyId,
         };
-    } catch (dbError) {
-        console.error("UPSERT ERROR:", dbError);
-        throw dbError;
+    } catch (dbError: any) {
+        console.error("🔴 UPSERT SUB ACCOUNT ERROR:", dbError?.message || dbError);
+        throw new Error(dbError?.message || "Database error while saving sub account.");
     }
 };
 
@@ -576,6 +630,7 @@ export const deleteSubAccount = async (subaccountId: string) => {
         },
     });
 
+    revalidatePath("/", "layout");
     return response;
 };
 
@@ -607,9 +662,11 @@ export const sendInvitation = async (email: string, role: Role, agencyId: string
                 return { error: "This user is already a member of your team." };
             }
 
-            // User belongs to a DIFFERENT agency
+            // User belongs to a DIFFERENT agency — reassign them to this agency
             if (userExists.agencyId && userExists.agencyId !== agencyId) {
-                return { error: "This user already belongs to another agency and cannot be added." };
+                const result = await addExistingUserToAgency(email, role, agencyId);
+                if (result.error) return result;
+                return { success: result.added, directAdd: true };
             }
 
             // User has an account but NO agency — link them directly (no email needed)
@@ -675,6 +732,7 @@ export const createMedia = async (subaccountId: string, media: CreateMediaType) 
         },
     });
 
+    revalidatePath("/", "layout");
     return response;
 };
 
@@ -684,6 +742,7 @@ export const deleteMedia = async (mediaId: string) => {
             id: mediaId,
         },
     });
+    revalidatePath("/", "layout");
     return response;
 };
 
@@ -723,6 +782,7 @@ export const deletePipeline = async (pipelineId: string) => {
         },
     });
 
+    revalidatePath("/", "layout");
     return response;
 };
 
@@ -760,6 +820,7 @@ export const upsertPipeline = async (pipeline: CreatePipeLineType) => {
         update: pipeline,
     });
 
+    revalidatePath("/", "layout");
     return response;
 };
 
@@ -788,6 +849,7 @@ export const upsertFunnel = async (subaccountId: string, funnel: z.infer<typeof 
         },
     });
 
+    revalidatePath("/", "layout");
     return response;
 };
 
@@ -816,6 +878,7 @@ export const upsertLane = async (lane: Prisma.LaneUncheckedCreateInput) => {
         },
     });
 
+    revalidatePath("/", "layout");
     return response;
 };
 
@@ -825,6 +888,7 @@ export const deleteLane = async (laneId: string) => {
             id: laneId,
         },
     });
+    revalidatePath("/", "layout");
     return response;
 };
 
@@ -867,6 +931,7 @@ export const deleteTicket = async (ticketId: string) => {
         },
     });
 
+    revalidatePath("/", "layout");
     return response;
 };
 
@@ -941,6 +1006,7 @@ export const upsertTicket = async (ticket: Prisma.TicketUncheckedCreateInput, ta
         },
     });
 
+    revalidatePath("/", "layout");
     return response;
 };
 
@@ -998,6 +1064,7 @@ export const upsertContact = async (contact: Prisma.ContactUncheckedCreateInput)
         create: contact,
     });
 
+    revalidatePath("/", "layout");
     return response;
 };
 
@@ -1039,9 +1106,7 @@ export const upsertFunnelPage = async (subaccountId: string, funnelPage: UpsertF
         update: {
             ...funnelPage,
         },
-        create: {
-            ...funnelPage,
-            content: funnelPage.content
+        create: { ...funnelPage, name: funnelPage.name || 'New Page', content: funnelPage.content
                 ? funnelPage.content
                 : JSON.stringify([
                       {

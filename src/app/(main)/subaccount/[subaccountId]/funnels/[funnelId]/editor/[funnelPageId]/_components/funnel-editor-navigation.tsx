@@ -131,7 +131,7 @@ const FunnelEditorNavigation: React.FC<Props> = ({ funnelId, funnelPageDetails, 
                     >
                         <TabsList className="grid w-full grid-cols-3 bg-transparent h-fit">
                             <Tooltip>
-                                <TooltipTrigger>
+                                <TooltipTrigger asChild>
                                     <TabsTrigger value="Desktop" className="data-[state=active]:bg-muted w-10 h-10 p-0">
                                         <Laptop />
                                     </TabsTrigger>
@@ -142,7 +142,7 @@ const FunnelEditorNavigation: React.FC<Props> = ({ funnelId, funnelPageDetails, 
                             </Tooltip>
 
                             <Tooltip>
-                                <TooltipTrigger>
+                                <TooltipTrigger asChild>
                                     <TabsTrigger value="Tablet" className="data-[state=active]:bg-muted w-10 h-10 p-0">
                                         <Tablet />
                                     </TabsTrigger>
@@ -153,7 +153,7 @@ const FunnelEditorNavigation: React.FC<Props> = ({ funnelId, funnelPageDetails, 
                             </Tooltip>
 
                             <Tooltip>
-                                <TooltipTrigger>
+                                <TooltipTrigger asChild>
                                     <TabsTrigger value="Mobile" className="data-[state=active]:bg-muted w-10 h-10 p-0">
                                         <Smartphone />
                                     </TabsTrigger>

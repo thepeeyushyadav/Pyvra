@@ -76,9 +76,16 @@ export const columns: ColumnDef<NonNullable<UsersWithAgencySubAccountPermissions
       header: "Owned Accounts",
       cell: ({ row }) => {
         const isAgencyOwner = row.getValue("role") === "AGENCY_OWNER";
-        const ownedAccounts = row.original?.Permissions.filter(
+        const allPermissions = row.original?.Permissions.filter(
           (per) => per.access,
         );
+        // Deduplicate by subAccountId to prevent duplicate badges
+        const seen = new Set<string>();
+        const ownedAccounts = allPermissions?.filter((per) => {
+          if (seen.has(per.subAccountId)) return false;
+          seen.add(per.subAccountId);
+          return true;
+        });
 
         if (isAgencyOwner)
           return (

@@ -31,26 +31,25 @@ const Layout = async ({ children, params }: Props) => {
     return redirect(`/agency`);
   }
 
-  // Re-sync role from DB → Clerk privateMetadata to prevent stale-token RBAC bypass
+  // Get the DB role as the source of truth
   const dbUser = await db.user.findUnique({
     where: { email: user.emailAddresses[0].emailAddress },
     select: { role: true },
   });
 
+  const effectiveRole = dbUser?.role || user.privateMetadata.role;
+
+  // Sync DB role to Clerk if out of date
   if (dbUser && dbUser.role !== user.privateMetadata.role) {
     await (await clerkClient()).users.updateUserMetadata(user.id, {
       privateMetadata: { role: dbUser.role },
     });
-    // Force the layout to re-check with the fresh role from DB
-    if (
-      dbUser.role !== "AGENCY_OWNER" &&
-      dbUser.role !== "AGENCY_ADMIN"
-    ) {
-      return <Unauthorized />;
-    }
-  } else if (
-    user.privateMetadata.role !== "AGENCY_OWNER" &&
-    user.privateMetadata.role !== "AGENCY_ADMIN"
+  }
+
+  // Check authorization using the DB role
+  if (
+    effectiveRole !== "AGENCY_OWNER" &&
+    effectiveRole !== "AGENCY_ADMIN"
   ) {
     return <Unauthorized />;
   }
