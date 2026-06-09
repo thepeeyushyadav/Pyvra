@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white" alt="MySQL" />
 </div>
 
-<h1 align="center">Pyvra - B2B SaaS Website & Funnel Builder</h1>
+<h1 align="center">Pyvra - B2B SaaS Website & Funnel-Builder</h1>
 
 <p align="center">
   A complete, multi-tenant B2B SaaS platform allowing agencies to manage their clients (subaccounts), build highly-customizable sales funnels, manage complex pipelines, and process payments entirely under a white-label brands.
