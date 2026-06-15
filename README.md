@@ -17,7 +17,7 @@
 ### 2. Technology Highlight
 *(A high-level overview of the technologies used)*
 
-🔥 **A Full Stack Multi-Tenant SaaS App built with:** 
+🔥 **A Full Stack Multi-Tenant SaaS App Built with:** 
 🟦 **Next.js (App Router, Server Actions)** 
 🟡 **TypeScript** 
 🟩 **Prisma ORM** 
